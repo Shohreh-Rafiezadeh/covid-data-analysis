@@ -1,0 +1,275 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+\documentclass[11pt,a4paper]{article}
+
+% --------------------------------------------------
+% Packages
+% --------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+% --------------------------------------------------
+% Page setup
+% --------------------------------------------------
+\geometry{
+    left=25mm,
+    right=25mm,
+    top=25mm,
+    bottom=25mm
+}
+
+\onehalfspacing
+
+% --------------------------------------------------
+% Hyperlinks
+% --------------------------------------------------
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black,
+    pdftitle={Germany Electricity Generation 2025},
+    pdfauthor={},
+    pdfsubject={Business Analysis of Electricity Generation Patterns, Mix, Variability and renewable energy analysis}
+}
+
+% --------------------------------------------------
+% Header and footer
+% --------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Germany Electricity Generation 2025}
+\rhead{Business Analysis}
+\cfoot{\thepage}
+
+% --------------------------------------------------
+% Section formatting
+% --------------------------------------------------
+\titleformat{\section}
+  {\Large\bfseries}
+  {\thesection}
+  {0.75em}
+  {}
+
+\titleformat{\subsection}
+  {\large\bfseries}
+  {\thesubsection}
+  {0.75em}
+  {}
+
+% --------------------------------------------------
+% Figure helper
+% --------------------------------------------------
+\newcommand{\projectfigure}[3]{
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#2\textwidth]{#1}
+        \caption{#3}
+        \label{fig:#1}
+    \end{figure}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+\title{\textbf{COVID-19 Global Data Analysis}\\
+ \vspace{1cm}
+\large \textbf{From Raw Data to Insights}}
+ \vspace{1cm}
+\author{Shohreh Rafiezadeh} 
+\date{\today}
+\begin{document}
+\maketitle
+
+ \begin{center}  
+ \vspace{1cm}
+  {\textbf{\Large Portfolio Project}}
+ \end{center}   
+   
+  \vspace{}     
+    
+\begin{tabular}{ll}
+    \textbf{Analysis Period:} & January--March 2020 \\
+    \textbf{Geographic Scope:} & Global reporting entities \\
+    \textbf{Analytical Focus:} & COVID-19 Cases, Deaths, Recoveries and Trends \\
+    \textbf{Methods:} & Python, Pandas, NumPy, Statistical Analysis and Visualization
+\end{tabular}
+
+
+   
+%    % \vfill
+%      \vspace{2cm}
+    
+ 
+    
+%     {\Large Shohreh Rafiezadeh}
+    
+%      %\vspace{2cm}
+    
+%     {\Large 2026}
+    
+% \end{titlepage}
+\vspace{1cm}
+\begin{abstract}
+\large This report presents an exploratory analysis of a historical COVID-19 dataset containing date-stamped reports of confirmed cases, deaths, and recoveries across geographic reporting entities. Using Python, pandas, NumPy, and Matplotlib, the analysis examines reported case trends over time, compares cumulative counts across entities, derives active-case and rate measures, and evaluates the association between confirmed cases and deaths. The dataset shows a substantial increase in reported cases during the study period, a prominent one-day reporting increase on 13 February 2020, and a very strong positive correlation between reported confirmed cases and deaths ($r=0.995$). These results describe patterns in the supplied dataset and should not be interpreted as definitive epidemiological estimates. The source mixes country-level and province/state-level reporting, and observed changes may reflect reporting practices or revisions as well as changes in the outbreak.
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+The COVID-19 pandemic produced large volumes of reported epidemiological data. Exploratory data analysis can summarize how reported cases changed over time, identify reporting entities with the largest cumulative counts, and examine relationships among reported measures. This project demonstrates a reproducible workflow: inspecting raw data, cleaning columns and data types, deriving analytical variables, aggregating observations, visualizing patterns, and interpreting results with appropriate caution.
+
+\subsection{Research questions}
+\begin{enumerate}
+\item How did reported confirmed cases develop over time?
+\item On which date did the largest daily increase in reported confirmed cases occur?
+\item Which reporting entities had the highest reported confirmed-case and death counts?
+\item How were reported recoveries and active cases distributed across entities?
+\item What do descriptive death and recovery rates show, and what are their limitations?
+\item How strongly were reported confirmed cases associated with reported deaths?
+\end{enumerate}
+
+\section{Dataset}
+The source file contains observations indexed by date and geographic reporting entity. Original fields include observation date, province/state, country/region, last update, confirmed cases, deaths, and recovered cases. An empty \texttt{Unnamed: 8} column was removed during cleaning.
+
+The dataset contains both country-level observations and province/state-level observations. Some records have a missing province/state because they are reported at a broader geographic level. The report therefore uses the term \emph{reporting entity} rather than assuming every row represents a comparable sovereign country.
+
+\subsection{Data quality considerations}
+The preparation stage checked dataframe dimensions and data types, missing values, duplicate rows, date parsing, the empty source column, and consistency of column names. Missing values in province/state are not necessarily errors: they can indicate country-level reporting. A \texttt{Location} field was created by using province/state where available and country/region otherwise.
+
+\section{Methodology}
+\subsection{Data cleaning}
+The empty column was removed, \texttt{ObservationDate} and \texttt{Last Update} were converted to datetime values, and column names were standardized to lowercase snake case. The resulting main fields include \texttt{observation\_date}, \texttt{country\_region}, \texttt{confirmed}, \texttt{deaths}, and \texttt{recovered}.
+
+\subsection{Derived variables}
+Active cases were calculated as
+\[
+\text{Active}=\text{Confirmed}-\text{Deaths}-\text{Recovered}.
+\]
+The descriptive reported death rate was calculated as
+\[
+\text{Reported death rate}=\frac{\text{Deaths}}{\text{Confirmed}}\times 100,
+\]
+and the descriptive reported recovery rate as
+\[
+\text{Reported recovery rate}=\frac{\text{Recovered}}{\text{Confirmed}}\times 100.
+\]
+These ratios are snapshots based on reported cumulative counts, not final clinical outcomes or estimates of infection fatality risk.
+
+\subsection{Daily reported changes}
+For each observation date, confirmed, death, and recovery counts were summed across records in the dataset. Daily changes were calculated by differencing consecutive date-level totals:
+\[
+\text{New reported cases}_t=\text{Confirmed}_t-\text{Confirmed}_{t-1}.
+\]
+Because the source combines different geographic reporting levels, these sums are treated as dataset-level reported totals rather than perfectly standardized global epidemiological totals.
+
+\subsection{Reporting-entity summaries}
+For each \texttt{country\_region}, the maximum reported cumulative confirmed, death, and recovery values were used to create a summary table. The maximum is used rather than summing cumulative observations over time, which would double-count previous reports. Mixed reporting levels still limit comparability.
+
+\subsection{Association analysis}
+Pearson's correlation coefficient was calculated between the reporting-entity maximum confirmed count and maximum death count. A scatter plot with logarithmic axes displays entities whose counts differ by several orders of magnitude.
+
+\section{Results}
+\subsection{Reported confirmed cases over time}
+Figure~\ref{fig:global-confirmed} presents the reported cumulative confirmed-case series. The series rises substantially during the displayed period, with changes in slope indicating that the reported total did not increase at a constant rate.
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{global_confirmed_cases.png}
+\caption{Global reported confirmed COVID-19 cases over time, aggregated from the supplied dataset.}
+\label{fig:global-confirmed}
+\end{figure}
+Cumulative counts retain previous reports, so this series is more suitable for understanding the build-up of reported cases than for identifying daily fluctuations.
+
+\subsection{Daily reported new cases and peak increase}
+Figure~\ref{fig:daily-new} shows differences between consecutive date-level reported totals. The daily series is substantially more volatile than the cumulative series. The largest daily increase in the computed series occurred on \textbf{13 February 2020}, when reported confirmed cases increased by \textbf{15,148}. On that date, aggregated reported totals were 60,370 confirmed cases, 1,371 deaths, and 6,295 recoveries; calculated daily changes were 253 deaths and 1,145 recoveries.
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{daily_new_cases.png}
+\caption{Daily change in reported confirmed cases. The spike on 13 February 2020 is a change in reported totals and should not automatically be interpreted as incident infections on that date.}
+\label{fig:daily-new}
+\end{figure}
+The one-day increase may reflect changes in the outbreak and/or reporting, classification, or revision practices. The dataset alone cannot separate these explanations.
+
+\subsection{Reporting entities with the highest confirmed counts}
+Figure~\ref{fig:top-confirmed} shows the ten entities with the largest maximum reported confirmed counts. Mainland China had the highest value at 67,707. The next largest values were Italy (7,375), South Korea (7,314), and Iran (6,566). France (1,126) and Germany (1,040) were substantially lower in this dataset.
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{top_confirmed_cases.png}
+\caption{Top ten reporting entities by maximum reported confirmed cases.}
+\label{fig:top-confirmed}
+\end{figure}
+These are absolute counts, not population-adjusted rates or direct measures of individual risk.
+
+\subsection{Reporting entities with the highest death counts}
+Figure~\ref{fig:top-deaths} compares the ten highest reported death counts. Mainland China recorded 2,986 reported deaths, followed by Italy with 366 and Iran with 194. South Korea recorded 50.
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{top_deaths.png}
+\caption{Top ten reporting entities by maximum reported deaths.}
+\label{fig:top-deaths}
+\end{figure}
+The counts are influenced by outbreak size, timing, testing, reporting practices, and other factors. The chart is descriptive and does not establish why counts differed.
+
+\subsection{Recoveries and active cases}
+The largest reported recovery count in the reporting-entity summary was Mainland China (45,235), followed by Iran (2,134), Italy (622), and South Korea (135). Active cases were calculated as confirmed cases minus deaths and recoveries. Mainland China had 19,486 active cases, South Korea 7,129, Italy 6,387, and Iran 4,238. These figures describe the status represented in the supplied reports; they should not be used alone to rank healthcare performance because entities were at different stages of their outbreaks.
+
+\subsection{Reported death and recovery rates}
+The calculated reported death rate for Mainland China was 4.41\%, compared with 4.96\% for Italy and 2.95\% for Iran. The reported recovery rate was 66.81\% for Mainland China, 32.50\% for Iran, and 8.43\% for Italy in the summary used for this project. Some entities with very small confirmed counts had reported recovery rates of 100\%. One confirmed case and one reported recovery yields a 100\% ratio but provides little evidence about general outcomes. Rates are affected by denominator size, reporting completeness, and time between diagnosis and outcome.
+
+\subsection{Relationship between confirmed cases and deaths}
+Figure~\ref{fig:correlation} presents a log-log scatter plot of reported confirmed cases and deaths across reporting entities. The Pearson correlation coefficient calculated from the reporting-entity summary was
+\[
+r=0.995.
+\]
+\begin{figure}[H]\centering
+\includegraphics[width=0.88\textwidth]{confirmed_vs_deaths.png}
+\caption{Reported confirmed cases versus reported deaths by reporting entity, on logarithmic axes.}
+\label{fig:correlation}
+\end{figure}
+This value indicates an extremely strong positive linear association between the two variables in the analyzed summary. Entities with larger reported case counts generally also had larger reported death counts. However, correlation does not demonstrate causation. Both variables are cumulative counts and can rise together because of outbreak size, population, detection, reporting, and timing. Mainland China's very large values also contribute strongly to the overall pattern.
+
+\section{Key findings}
+\begin{enumerate}
+\item Reported cumulative confirmed cases increased substantially during the period shown.
+\item The largest one-day increase in the computed reported series was 15,148 cases on 13 February 2020.
+\item Mainland China had the largest reported confirmed-case and death counts in the reporting-entity summary.
+\item Iran, Italy, and South Korea were among the next most prominent entities, although their relative positions varied by metric.
+\item Active-case counts differed substantially, but comparisons are affected by outbreak timing and reporting practices.
+\item Reported death and recovery rates are sensitive to denominator size and the timing of recorded outcomes.
+\item The correlation between reported confirmed cases and deaths was extremely strong ($r=0.995$), but this is association, not proof of causality.
+\end{enumerate}
+
+\section{Limitations}
+\begin{enumerate}
+\item \textbf{Mixed geographic levels.} The source combines country-level and province/state-level observations. Aggregated totals may not be fully comparable across dates or entities.
+\item \textbf{Reporting changes and revisions.} Daily differences can include retrospective revisions or changes in case classification.
+\item \textbf{Unequal testing and detection.} Confirmed cases depend on testing access and case definitions, so reported counts do not equal all infections.
+\item \textbf{Timing of outcomes.} Cases, recoveries, and deaths are recorded at different stages. Snapshot rates may not reflect eventual outcomes for the same group.
+\item \textbf{Small denominators.} Ratios based on very few confirmed cases can be extreme and unstable.
+\item \textbf{Cumulative counts.} Absolute counts are affected by population and outbreak size and are not population-adjusted measures of risk.
+\item \textbf{Correlation is not causation.} The correlation analysis is descriptive and does not control for confounding variables or establish causality.
+\end{enumerate}
+
+\section{Conclusion}
+This project demonstrates an exploratory data-analysis workflow using Python: data inspection and cleaning, datetime conversion, feature engineering, aggregation, time-series analysis, entity rankings, descriptive rates, visualization, and correlation analysis.
+
+The dataset shows a substantial increase in reported confirmed cases, a prominent reporting increase on 13 February 2020, and concentration of reported cases and deaths in Mainland China during the period covered. Confirmed cases and deaths were very strongly associated in the reporting-entity summary, but this association cannot establish causality.
+
+The main lesson is methodological: useful analysis requires more than calculating totals and rates. Geographic structure, timing, reporting practices, and data limitations must be considered before drawing conclusions.
+
+\end{document}
